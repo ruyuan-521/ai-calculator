@@ -532,7 +532,7 @@
 
         <div class="footer">
             <span id="datetime"></span>
-            <span>作者：编程码农工坊</span>
+            <span>作者：渊</span>
         </div>
     </div>
 
@@ -667,13 +667,14 @@
             document.getElementById('limbsRow').classList.remove('counting-a');
             await sleep(800);
 
-            // === 阶段2：用蓝紫色数第二个数字 ===
+            // === 阶段2：用蓝紫色数第二个数字（从第一个数字后面接着数，不重叠） ===
             document.getElementById('sectionTitle').textContent = `正在数第二个数字 ${parsed.b}...`;
             document.getElementById('resultText').innerHTML = `<span style="color:#6c5ce7">正在数第二个数字 ${parsed.b}...</span>`;
             document.getElementById('limbsRow').classList.add('counting-b');
 
             for (let i = 1; i <= numB; i++) {
-                const label = document.querySelector(`.finger-label[data-index="${i}"]`);
+                const idx = numA + i; // 从第一个数字结束的位置接着数
+                const label = document.querySelector(`.finger-label[data-index="${idx}"]`);
                 if (label) {
                     label.classList.add('active', 'color-b');
                     document.getElementById('resultText').innerHTML = `<span style="color:#6c5ce7">数第二个数字... ${i}/${parsed.b}</span>`;
