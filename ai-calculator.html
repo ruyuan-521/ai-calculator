@@ -2,25 +2,30 @@
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
+    <!-- 禁止缩放，适配手机端 -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>人工智能计算器</title>
     <style>
+        /* ==================== 全局样式重置 ==================== */
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
 
+        /* ==================== 页面主体 ==================== */
         body {
+            /* 深色科技风渐变背景 */
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
-            align-items: flex-start;
+            align-items: flex-start; /* 顶部对齐，防止手机上居中时被键盘顶上去 */
             font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
             padding: 15px;
         }
 
+        /* ==================== 计算器主容器 ==================== */
         .calculator-container {
             background: rgba(20, 20, 40, 0.95);
             border-radius: 16px;
@@ -31,11 +36,13 @@
             width: 100%;
         }
 
+        /* ==================== 标题 ==================== */
         .title {
             text-align: center;
             font-size: 26px;
             font-weight: bold;
             margin-bottom: 20px;
+            /* 渐变色文字效果 */
             background: linear-gradient(90deg, #00d4ff, #00ff88);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
@@ -43,6 +50,7 @@
             letter-spacing: 3px;
         }
 
+        /* ==================== 输入区域 ==================== */
         .input-section {
             display: flex;
             gap: 10px;
@@ -50,6 +58,7 @@
             align-items: center;
         }
 
+        /* 算式输入框 */
         .input-box {
             flex: 1;
             background: rgba(30, 30, 60, 0.8);
@@ -61,7 +70,7 @@
             font-weight: bold;
             outline: none;
             transition: all 0.3s;
-            min-width: 0;
+            min-width: 0; /* 防止flex子项溢出 */
         }
 
         .input-box:focus {
@@ -73,6 +82,7 @@
             color: rgba(0, 212, 255, 0.4);
         }
 
+        /* 开始计算按钮 */
         .calc-btn {
             background: linear-gradient(135deg, #00d4ff, #00a8e8);
             border: none;
@@ -84,7 +94,7 @@
             cursor: pointer;
             transition: all 0.3s;
             box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
-            white-space: nowrap;
+            white-space: nowrap; /* 防止按钮文字换行 */
         }
 
         .calc-btn:hover {
@@ -101,9 +111,10 @@
             cursor: not-allowed;
         }
 
+        /* ==================== 进度条区域 ==================== */
         .progress-container {
             margin-bottom: 15px;
-            display: none;
+            display: none; /* 初始隐藏 */
         }
 
         .progress-bar {
@@ -132,6 +143,7 @@
             font-weight: bold;
         }
 
+        /* ==================== 状态文字 ==================== */
         .result-text {
             text-align: center;
             color: #00d4ff;
@@ -142,21 +154,24 @@
             line-height: 1.4;
         }
 
+        /* ==================== 手脚可视化区域 ==================== */
         .visual-section {
-            display: none;
+            display: none; /* 初始隐藏 */
             flex-direction: column;
             gap: 15px;
             align-items: center;
         }
 
+        /* 手脚排列行 */
         .limbs-row {
             display: flex;
             justify-content: center;
             gap: 20px;
             position: relative;
-            flex-wrap: wrap;
+            flex-wrap: wrap; /* 小屏幕自动换行 */
         }
 
+        /* 手掌/脚掌容器 */
         .hand, .foot {
             width: 100px;
             height: 130px;
@@ -168,6 +183,7 @@
             height: 100%;
         }
 
+        /* ==================== 手指/脚趾标签 ==================== */
         .finger-label {
             position: absolute;
             width: 24px;
@@ -184,57 +200,60 @@
             transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
         }
 
-        /* 颜色A - 红橙色 */
+        /* 颜色A - 红橙色：用于数第一个数字 */
         .finger-label.color-a {
             background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
             box-shadow: 0 2px 8px rgba(255, 107, 107, 0.5);
         }
 
-        /* 颜色B - 蓝紫色 */
+        /* 颜色B - 蓝紫色：用于数第二个数字 */
         .finger-label.color-b {
             background: linear-gradient(135deg, #6c5ce7, #a29bfe);
             box-shadow: 0 2px 8px rgba(108, 92, 231, 0.5);
         }
 
-        /* 颜色C - 混合色 - 金黄色 */
+        /* 颜色C - 金黄色：用于数最终结果 */
         .finger-label.color-c {
             background: linear-gradient(135deg, #ffd93d, #ff9a3c);
             box-shadow: 0 2px 8px rgba(255, 217, 61, 0.5);
         }
 
+        /* 激活状态：显示标签 */
         .finger-label.active {
             opacity: 1;
             transform: scale(1);
         }
 
-        /* 手指位置 - 左手 */
+        /* ==================== 手指/脚趾位置定位 ==================== */
+        /* 左手手指位置 */
         .hand-left .finger-label:nth-child(2) { top: 5px; left: 0px; }
         .hand-left .finger-label:nth-child(3) { top: -10px; left: 22px; }
         .hand-left .finger-label:nth-child(4) { top: -10px; left: 48px; }
         .hand-left .finger-label:nth-child(5) { top: 5px; left: 72px; }
         .hand-left .finger-label:nth-child(6) { top: 42px; left: 80px; }
 
-        /* 手指位置 - 右手 */
+        /* 右手手指位置 */
         .hand-right .finger-label:nth-child(2) { top: 5px; left: 0px; }
         .hand-right .finger-label:nth-child(3) { top: -10px; left: 22px; }
         .hand-right .finger-label:nth-child(4) { top: -10px; left: 48px; }
         .hand-right .finger-label:nth-child(5) { top: 5px; left: 72px; }
         .hand-right .finger-label:nth-child(6) { top: 42px; left: 80px; }
 
-        /* 脚趾位置 - 左脚 */
+        /* 左脚脚趾位置 */
         .foot-left .finger-label:nth-child(2) { top: 8px; left: 5px; }
         .foot-left .finger-label:nth-child(3) { top: 0px; left: 26px; }
         .foot-left .finger-label:nth-child(4) { top: 0px; left: 48px; }
         .foot-left .finger-label:nth-child(5) { top: 8px; left: 68px; }
         .foot-left .finger-label:nth-child(6) { top: 38px; left: 76px; }
 
-        /* 脚趾位置 - 右脚 */
+        /* 右脚脚趾位置 */
         .foot-right .finger-label:nth-child(2) { top: 8px; left: 5px; }
         .foot-right .finger-label:nth-child(3) { top: 0px; left: 26px; }
         .foot-right .finger-label:nth-child(4) { top: 0px; left: 48px; }
         .foot-right .finger-label:nth-child(5) { top: 8px; left: 68px; }
         .foot-right .finger-label:nth-child(6) { top: 38px; left: 76px; }
 
+        /* ==================== 底部信息 ==================== */
         .footer {
             display: flex;
             justify-content: space-between;
@@ -243,6 +262,7 @@
             color: rgba(0, 255, 136, 0.7);
         }
 
+        /* ==================== 最终结果 ==================== */
         .final-result {
             text-align: center;
             font-size: 24px;
@@ -250,9 +270,10 @@
             font-weight: bold;
             margin-top: 12px;
             text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
-            display: none;
+            display: none; /* 初始隐藏 */
         }
 
+        /* ==================== 脉冲动画（数数时的呼吸效果） ==================== */
         @keyframes pulse-a {
             0%, 100% { transform: scale(1); box-shadow: 0 2px 8px rgba(255, 107, 107, 0.5); }
             50% { transform: scale(1.15); box-shadow: 0 4px 16px rgba(255, 107, 107, 0.8); }
@@ -280,6 +301,7 @@
             animation: pulse-c 0.5s ease infinite;
         }
 
+        /* ==================== 小节标题 ==================== */
         .section-title {
             color: rgba(255, 255, 255, 0.6);
             font-size: 13px;
@@ -287,6 +309,7 @@
             margin-bottom: 8px;
         }
 
+        /* ==================== 颜色图例 ==================== */
         .legend {
             display: flex;
             justify-content: center;
@@ -321,7 +344,7 @@
             background: linear-gradient(135deg, #ffd93d, #ff9a3c);
         }
 
-        /* 手机适配 */
+        /* ==================== 手机端适配（屏幕宽度 <= 480px） ==================== */
         @media (max-width: 480px) {
             body {
                 padding: 10px;
@@ -372,6 +395,7 @@
                 font-size: 10px;
             }
 
+            /* 手机端手指位置微调 */
             .hand-left .finger-label:nth-child(2) { top: 4px; left: 0px; }
             .hand-left .finger-label:nth-child(3) { top: -8px; left: 18px; }
             .hand-left .finger-label:nth-child(4) { top: -8px; left: 38px; }
@@ -413,6 +437,7 @@
             }
         }
 
+        /* ==================== 超小屏幕适配（屏幕宽度 <= 360px） ==================== */
         @media (max-width: 360px) {
             .hand, .foot {
                 width: 65px;
@@ -432,14 +457,18 @@
     </style>
 </head>
 <body>
+    <!-- ==================== 计算器主容器 ==================== -->
     <div class="calculator-container">
+        <!-- 标题 -->
         <h1 class="title">人工'智能'计算器</h1>
         
+        <!-- 输入区域：算式输入框 + 开始计算按钮 -->
         <div class="input-section">
             <input type="text" class="input-box" id="expression" placeholder="例如: 5+8=" value="5+8=">
             <button class="calc-btn" id="calcBtn" onclick="startCalculate()">开始计算</button>
         </div>
 
+        <!-- 进度条区域（初始隐藏） -->
         <div class="progress-container" id="progressContainer">
             <div class="progress-bar">
                 <div class="progress-fill" id="progressFill"></div>
@@ -447,27 +476,39 @@
             <div class="progress-text" id="progressText">AI计算链路展开中...</div>
         </div>
 
+        <!-- 状态文字显示区 -->
         <div class="result-text" id="resultText"></div>
 
+        <!-- ==================== 手脚可视化区域（初始隐藏） ==================== -->
         <div class="visual-section" id="visualSection">
+            <!-- 双手 -->
             <div>
                 <div class="section-title" id="sectionTitle">AI计算链路展开完成，准备展示推演过程...</div>
                 <div class="limbs-row" id="limbsRow">
+                    <!-- 左手 -->
                     <div class="hand hand-left" id="handLeft">
                         <svg class="hand-svg" viewBox="0 0 120 160">
+                            <!-- 手掌 -->
                             <ellipse cx="60" cy="100" rx="35" ry="45" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2"/>
+                            <!-- 拇指 -->
                             <ellipse cx="90" cy="85" rx="12" ry="20" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2" transform="rotate(-30 90 85)"/>
+                            <!-- 食指 -->
                             <ellipse cx="35" cy="50" rx="10" ry="30" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2"/>
+                            <!-- 中指 -->
                             <ellipse cx="60" cy="40" rx="10" ry="35" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2"/>
+                            <!-- 无名指 -->
                             <ellipse cx="85" cy="50" rx="10" ry="30" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2"/>
+                            <!-- 小指 -->
                             <ellipse cx="105" cy="65" rx="8" ry="22" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2"/>
                         </svg>
+                        <!-- 手指标签：data-index 表示物理位置编号 1-5 -->
                         <div class="finger-label" data-index="1">1</div>
                         <div class="finger-label" data-index="2">2</div>
                         <div class="finger-label" data-index="3">3</div>
                         <div class="finger-label" data-index="4">4</div>
                         <div class="finger-label" data-index="5">5</div>
                     </div>
+                    <!-- 右手 -->
                     <div class="hand hand-right" id="handRight">
                         <svg class="hand-svg" viewBox="0 0 120 160">
                             <ellipse cx="60" cy="100" rx="35" ry="45" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2"/>
@@ -477,6 +518,7 @@
                             <ellipse cx="35" cy="50" rx="10" ry="30" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2"/>
                             <ellipse cx="15" cy="65" rx="8" ry="22" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2"/>
                         </svg>
+                        <!-- 手指标签：data-index 表示物理位置编号 6-10 -->
                         <div class="finger-label" data-index="6">6</div>
                         <div class="finger-label" data-index="7">7</div>
                         <div class="finger-label" data-index="8">8</div>
@@ -486,8 +528,10 @@
                 </div>
             </div>
 
+            <!-- 双脚 -->
             <div>
                 <div class="limbs-row">
+                    <!-- 左脚 -->
                     <div class="foot foot-left" id="footLeft">
                         <svg class="foot-svg" viewBox="0 0 120 160">
                             <ellipse cx="60" cy="100" rx="40" ry="50" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2"/>
@@ -497,12 +541,14 @@
                             <ellipse cx="100" cy="60" rx="8" ry="14" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2"/>
                             <ellipse cx="110" cy="75" rx="7" ry="12" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2"/>
                         </svg>
+                        <!-- 脚趾标签：data-index 表示物理位置编号 11-15 -->
                         <div class="finger-label" data-index="11">11</div>
                         <div class="finger-label" data-index="12">12</div>
                         <div class="finger-label" data-index="13">13</div>
                         <div class="finger-label" data-index="14">14</div>
                         <div class="finger-label" data-index="15">15</div>
                     </div>
+                    <!-- 右脚 -->
                     <div class="foot foot-right" id="footRight">
                         <svg class="foot-svg" viewBox="0 0 120 160">
                             <ellipse cx="60" cy="100" rx="40" ry="50" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2"/>
@@ -512,6 +558,7 @@
                             <ellipse cx="20" cy="60" rx="8" ry="14" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2"/>
                             <ellipse cx="10" cy="75" rx="7" ry="12" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2"/>
                         </svg>
+                        <!-- 脚趾标签：data-index 表示物理位置编号 16-20 -->
                         <div class="finger-label" data-index="16">16</div>
                         <div class="finger-label" data-index="17">17</div>
                         <div class="finger-label" data-index="18">18</div>
@@ -521,6 +568,7 @@
                 </div>
             </div>
 
+            <!-- 颜色图例说明 -->
             <div class="legend" id="legend" style="display:none;">
                 <div class="legend-item"><div class="legend-dot dot-a"></div><span id="legendA">数字A</span></div>
                 <div class="legend-item"><div class="legend-dot dot-b"></div><span id="legendB">数字B</span></div>
@@ -528,15 +576,22 @@
             </div>
         </div>
 
+        <!-- 最终计算结果 -->
         <div class="final-result" id="finalResult"></div>
 
+        <!-- 底部信息：时间 + 作者 -->
         <div class="footer">
             <span id="datetime"></span>
             <span>作者：渊</span>
         </div>
     </div>
 
+    <!-- ==================== JavaScript 逻辑 ==================== -->
     <script>
+        /**
+         * 更新底部时间显示
+         * 每秒刷新一次，格式：YYYY/MM/DD HH:MM:SS
+         */
         function updateTime() {
             const now = new Date();
             const year = now.getFullYear();
@@ -550,10 +605,18 @@
         updateTime();
         setInterval(updateTime, 1000);
 
+        // 计算状态锁，防止重复点击
         let isCalculating = false;
 
+        /**
+         * 解析算式字符串
+         * @param {string} expr - 输入的算式，如 "5+8="
+         * @returns {Object|null} - 返回 {a: 数字A, b: 数字B, op: 运算符} 或 null
+         */
         function parseExpression(expr) {
+            // 移除等号
             expr = expr.replace(/=/g, '');
+            // 正则匹配：数字 + 运算符 + 数字
             const match = expr.match(/(\d+)\s*([+\-×*/])\s*(\d+)/);
             if (!match) return null;
             return {
@@ -563,6 +626,13 @@
             };
         }
 
+        /**
+         * 执行数学计算
+         * @param {number} a - 第一个数字
+         * @param {number} b - 第二个数字
+         * @param {string} op - 运算符
+         * @returns {number} - 计算结果
+         */
         function calculate(a, b, op) {
             switch(op) {
                 case '+': return a + b;
@@ -574,6 +644,11 @@
             }
         }
 
+        /**
+         * 获取运算符的显示符号
+         * @param {string} op - 原始运算符
+         * @returns {string} - 用于显示的符号
+         */
         function getOpSymbol(op) {
             switch(op) {
                 case '+': return '+';
@@ -585,12 +660,21 @@
             }
         }
 
+        /**
+         * 主计算函数：三阶段数数动画
+         * 
+         * 阶段1（红色）：数第一个数字，标签显示 1,2,3...numA
+         * 阶段2（蓝紫色）：数第二个数字，从 numA+1 位置开始，标签显示 1,2,3...numB
+         * 阶段3（金黄色）：数结果，覆盖前面的颜色，标签显示 1,2,3...result
+         */
         async function startCalculate() {
+            // 防止重复点击
             if (isCalculating) return;
             
             const expression = document.getElementById('expression').value;
             const parsed = parseExpression(expression);
             
+            // 算式格式校验
             if (!parsed) {
                 alert('请输入正确的算式，例如：5+8=');
                 return;
@@ -601,24 +685,26 @@
             btn.disabled = true;
             btn.textContent = '计算中...';
 
-            // 重置
+            // ==================== 重置所有状态 ====================
             document.getElementById('progressContainer').style.display = 'block';
             document.getElementById('visualSection').style.display = 'none';
             document.getElementById('finalResult').style.display = 'none';
             document.getElementById('legend').style.display = 'none';
             document.getElementById('resultText').textContent = '';
+            // 清除所有标签的激活状态和颜色，恢复原始位置编号
             document.querySelectorAll('.finger-label').forEach(el => {
                 el.classList.remove('active', 'color-a', 'color-b', 'color-c');
-                el.textContent = el.getAttribute('data-index'); // 恢复原始位置数字
+                el.textContent = el.getAttribute('data-index');
             });
             document.getElementById('limbsRow').classList.remove('counting-a', 'counting-b', 'counting-c');
 
+            // 计算结果，限制最大值为20（手脚总数）
             const result = calculate(parsed.a, parsed.b, parsed.op);
             const numA = Math.min(parsed.a, 20);
             const numB = Math.min(parsed.b, 20);
             const totalResult = Math.min(Math.abs(Math.round(result)), 20);
 
-            // 进度条
+            // ==================== 进度条动画 ====================
             const progressFill = document.getElementById('progressFill');
             const progressText = document.getElementById('progressText');
             
@@ -638,12 +724,12 @@
 
             await sleep(500);
 
-            // 显示手脚
+            // ==================== 显示手脚可视化区域 ====================
             document.getElementById('progressContainer').style.display = 'none';
             document.getElementById('visualSection').style.display = 'flex';
             document.getElementById('legend').style.display = 'flex';
 
-            // 设置图例
+            // 更新图例文字
             const opSym = getOpSymbol(parsed.op);
             document.getElementById('legendA').textContent = `数字A (${parsed.a})`;
             document.getElementById('legendB').textContent = `数字B (${parsed.b})`;
@@ -651,7 +737,8 @@
 
             await sleep(800);
 
-            // === 阶段1：用红色数第一个数字 ===
+            // ==================== 阶段1：红色数第一个数字 ====================
+            // 点亮位置 1 ~ numA，标签显示 1,2,3...numA
             document.getElementById('sectionTitle').textContent = `正在数第一个数字 ${parsed.a}...`;
             document.getElementById('resultText').innerHTML = `<span style="color:#ff6b6b">正在数第一个数字 ${parsed.a}...</span>`;
             document.getElementById('limbsRow').classList.add('counting-a');
@@ -668,13 +755,14 @@
             document.getElementById('limbsRow').classList.remove('counting-a');
             await sleep(800);
 
-            // === 阶段2：用蓝紫色数第二个数字（从1开始，不重叠） ===
+            // ==================== 阶段2：蓝紫色数第二个数字 ====================
+            // 从位置 numA+1 开始点亮，标签显示 1,2,3...numB（从1开始重新数）
             document.getElementById('sectionTitle').textContent = `正在数第二个数字 ${parsed.b}...`;
             document.getElementById('resultText').innerHTML = `<span style="color:#6c5ce7">正在数第二个数字 ${parsed.b}...</span>`;
             document.getElementById('limbsRow').classList.add('counting-b');
 
             for (let i = 1; i <= numB; i++) {
-                const idx = numA + i; // 从第一个数字结束的位置接着数，不重叠
+                const idx = numA + i; // 物理位置从第一个数字后面接着数，不重叠
                 const label = document.querySelector(`.finger-label[data-index="${idx}"]`);
                 if (label) {
                     label.classList.add('active', 'color-b');
@@ -687,7 +775,8 @@
             document.getElementById('limbsRow').classList.remove('counting-b');
             await sleep(800);
 
-            // === 阶段3：用金黄色数结果（覆盖前面的颜色，不隐藏） ===
+            // ==================== 阶段3：金黄色数结果 ====================
+            // 从位置1开始，逐个将颜色覆盖为金黄色，不隐藏前面的标签
             document.getElementById('sectionTitle').textContent = `正在数结果 ${result}...`;
             document.getElementById('resultText').innerHTML = `<span style="color:#ffd93d">正在数结果 ${result}...</span>`;
             document.getElementById('limbsRow').classList.add('counting-c');
@@ -706,22 +795,29 @@
 
             document.getElementById('limbsRow').classList.remove('counting-c');
 
-            // 显示最终结果
+            // ==================== 显示最终结果 ====================
             await sleep(500);
             document.getElementById('finalResult').style.display = 'block';
             document.getElementById('finalResult').textContent = `${parsed.a} ${opSym} ${parsed.b} = ${result}`;
             document.getElementById('resultText').textContent = '计算完成！';
             document.getElementById('sectionTitle').textContent = '计算完成！';
 
+            // 解锁按钮
             btn.disabled = false;
             btn.textContent = '开始计算';
             isCalculating = false;
         }
 
+        /**
+         * 延时工具函数
+         * @param {number} ms - 毫秒数
+         * @returns {Promise} - 延时Promise
+         */
         function sleep(ms) {
             return new Promise(resolve => setTimeout(resolve, ms));
         }
 
+        // 回车键触发计算
         document.getElementById('expression').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') {
                 startCalculate();
