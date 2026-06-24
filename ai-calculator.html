@@ -1,0 +1,516 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>人工智能计算器</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+            padding: 20px;
+        }
+
+        .calculator-container {
+            background: rgba(20, 20, 40, 0.95);
+            border-radius: 16px;
+            padding: 30px 40px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(0, 200, 255, 0.1);
+            border: 1px solid rgba(0, 200, 255, 0.2);
+            max-width: 600px;
+            width: 100%;
+        }
+
+        .title {
+            text-align: center;
+            font-size: 32px;
+            font-weight: bold;
+            margin-bottom: 25px;
+            background: linear-gradient(90deg, #00d4ff, #00ff88);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-shadow: 0 0 30px rgba(0, 212, 255, 0.3);
+            letter-spacing: 4px;
+        }
+
+        .input-section {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            align-items: center;
+        }
+
+        .input-box {
+            flex: 1;
+            background: rgba(30, 30, 60, 0.8);
+            border: 2px solid rgba(0, 200, 255, 0.3);
+            border-radius: 10px;
+            padding: 12px 18px;
+            color: #00d4ff;
+            font-size: 22px;
+            font-weight: bold;
+            outline: none;
+            transition: all 0.3s;
+        }
+
+        .input-box:focus {
+            border-color: #00d4ff;
+            box-shadow: 0 0 15px rgba(0, 212, 255, 0.3);
+        }
+
+        .input-box::placeholder {
+            color: rgba(0, 212, 255, 0.4);
+        }
+
+        .calc-btn {
+            background: linear-gradient(135deg, #00d4ff, #00a8e8);
+            border: none;
+            border-radius: 10px;
+            padding: 12px 28px;
+            color: #fff;
+            font-size: 18px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            box-shadow: 0 4px 15px rgba(0, 212, 255, 0.3);
+            white-space: nowrap;
+        }
+
+        .calc-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0, 212, 255, 0.5);
+        }
+
+        .calc-btn:active {
+            transform: translateY(0);
+        }
+
+        .calc-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .progress-container {
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background: rgba(30, 30, 60, 0.8);
+            border-radius: 10px;
+            overflow: hidden;
+            border: 1px solid rgba(0, 255, 136, 0.3);
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #00ff88, #00cc66);
+            width: 0%;
+            transition: width 0.3s ease;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.5);
+        }
+
+        .progress-text {
+            text-align: center;
+            color: #00ff88;
+            font-size: 14px;
+            margin-top: 8px;
+            font-weight: bold;
+        }
+
+        .result-text {
+            text-align: center;
+            color: #00d4ff;
+            font-size: 16px;
+            margin-bottom: 20px;
+            min-height: 24px;
+            font-weight: bold;
+        }
+
+        .visual-section {
+            display: none;
+            flex-direction: column;
+            gap: 20px;
+            align-items: center;
+        }
+
+        .hands-container, .feet-container {
+            display: flex;
+            justify-content: center;
+            gap: 30px;
+            position: relative;
+        }
+
+        .hand, .foot {
+            width: 120px;
+            height: 160px;
+            position: relative;
+        }
+
+        /* 手掌样式 */
+        .hand-svg, .foot-svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .finger-label {
+            position: absolute;
+            width: 28px;
+            height: 28px;
+            background: linear-gradient(135deg, #ff6b6b, #ee5a5a);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 14px;
+            font-weight: bold;
+            box-shadow: 0 2px 8px rgba(255, 107, 107, 0.4);
+            opacity: 0;
+            transform: scale(0);
+            transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        }
+
+        .finger-label.active {
+            opacity: 1;
+            transform: scale(1);
+        }
+
+        .finger-label.toe {
+            background: linear-gradient(135deg, #4ecdc4, #44a08d);
+            box-shadow: 0 2px 8px rgba(78, 205, 196, 0.4);
+        }
+
+        /* 手指位置 - 左手 */
+        .hand-left .finger-label:nth-child(2) { top: 5px; left: 0px; }
+        .hand-left .finger-label:nth-child(3) { top: -10px; left: 25px; }
+        .hand-left .finger-label:nth-child(4) { top: -10px; left: 55px; }
+        .hand-left .finger-label:nth-child(5) { top: 5px; left: 85px; }
+        .hand-left .finger-label:nth-child(6) { top: 50px; left: 95px; }
+
+        /* 手指位置 - 右手 */
+        .hand-right .finger-label:nth-child(2) { top: 5px; left: 0px; }
+        .hand-right .finger-label:nth-child(3) { top: -10px; left: 25px; }
+        .hand-right .finger-label:nth-child(4) { top: -10px; left: 55px; }
+        .hand-right .finger-label:nth-child(5) { top: 5px; left: 85px; }
+        .hand-right .finger-label:nth-child(6) { top: 50px; left: 95px; }
+
+        /* 脚趾位置 - 左脚 */
+        .foot-left .finger-label:nth-child(2) { top: 10px; left: 5px; }
+        .foot-left .finger-label:nth-child(3) { top: 0px; left: 30px; }
+        .foot-left .finger-label:nth-child(4) { top: 0px; left: 55px; }
+        .foot-left .finger-label:nth-child(5) { top: 10px; left: 80px; }
+        .foot-left .finger-label:nth-child(6) { top: 45px; left: 90px; }
+
+        /* 脚趾位置 - 右脚 */
+        .foot-right .finger-label:nth-child(2) { top: 10px; left: 5px; }
+        .foot-right .finger-label:nth-child(3) { top: 0px; left: 30px; }
+        .foot-right .finger-label:nth-child(4) { top: 0px; left: 55px; }
+        .foot-right .finger-label:nth-child(5) { top: 10px; left: 80px; }
+        .foot-right .finger-label:nth-child(6) { top: 45px; left: 90px; }
+
+        .footer {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+            font-size: 12px;
+            color: rgba(0, 255, 136, 0.7);
+        }
+
+        .final-result {
+            text-align: center;
+            font-size: 28px;
+            color: #00ff88;
+            font-weight: bold;
+            margin-top: 15px;
+            text-shadow: 0 0 20px rgba(0, 255, 136, 0.5);
+            display: none;
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .counting .finger-label.active {
+            animation: pulse 0.5s ease infinite;
+        }
+
+        .section-title {
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+            text-align: center;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="calculator-container">
+        <h1 class="title">人工'智能'计算器</h1>
+        
+        <div class="input-section">
+            <input type="text" class="input-box" id="expression" placeholder="例如: 5+8=" value="5+8=">
+            <button class="calc-btn" id="calcBtn" onclick="startCalculate()">开始计算</button>
+        </div>
+
+        <div class="progress-container" id="progressContainer">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">AI计算链路展开中...</div>
+        </div>
+
+        <div class="result-text" id="resultText"></div>
+
+        <div class="visual-section" id="visualSection">
+            <div>
+                <div class="section-title">AI计算链路展开完成，准备展示推演过程...</div>
+                <div class="hands-container">
+                    <div class="hand hand-left" id="handLeft">
+                        <svg class="hand-svg" viewBox="0 0 120 160">
+                            <!-- 手掌 -->
+                            <ellipse cx="60" cy="100" rx="35" ry="45" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2"/>
+                            <!-- 拇指 -->
+                            <ellipse cx="90" cy="85" rx="12" ry="20" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2" transform="rotate(-30 90 85)"/>
+                            <!-- 食指 -->
+                            <ellipse cx="35" cy="50" rx="10" ry="30" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2"/>
+                            <!-- 中指 -->
+                            <ellipse cx="60" cy="40" rx="10" ry="35" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2"/>
+                            <!-- 无名指 -->
+                            <ellipse cx="85" cy="50" rx="10" ry="30" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2"/>
+                            <!-- 小指 -->
+                            <ellipse cx="105" cy="65" rx="8" ry="22" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2"/>
+                        </svg>
+                        <div class="finger-label" data-index="1">1</div>
+                        <div class="finger-label" data-index="2">2</div>
+                        <div class="finger-label" data-index="3">3</div>
+                        <div class="finger-label" data-index="4">4</div>
+                        <div class="finger-label" data-index="5">5</div>
+                    </div>
+                    <div class="hand hand-right" id="handRight">
+                        <svg class="hand-svg" viewBox="0 0 120 160">
+                            <!-- 手掌 -->
+                            <ellipse cx="60" cy="100" rx="35" ry="45" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2"/>
+                            <!-- 拇指 -->
+                            <ellipse cx="30" cy="85" rx="12" ry="20" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2" transform="rotate(30 30 85)"/>
+                            <!-- 食指 -->
+                            <ellipse cx="85" cy="50" rx="10" ry="30" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2"/>
+                            <!-- 中指 -->
+                            <ellipse cx="60" cy="40" rx="10" ry="35" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2"/>
+                            <!-- 无名指 -->
+                            <ellipse cx="35" cy="50" rx="10" ry="30" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2"/>
+                            <!-- 小指 -->
+                            <ellipse cx="15" cy="65" rx="8" ry="22" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2"/>
+                        </svg>
+                        <div class="finger-label" data-index="6">6</div>
+                        <div class="finger-label" data-index="7">7</div>
+                        <div class="finger-label" data-index="8">8</div>
+                        <div class="finger-label" data-index="9">9</div>
+                        <div class="finger-label" data-index="10">10</div>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <div class="hands-container feet-container">
+                    <div class="foot foot-left" id="footLeft">
+                        <svg class="foot-svg" viewBox="0 0 120 160">
+                            <!-- 脚掌 -->
+                            <ellipse cx="60" cy="100" rx="40" ry="50" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2"/>
+                            <!-- 大脚趾 -->
+                            <ellipse cx="35" cy="55" rx="12" ry="18" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2"/>
+                            <!-- 食趾 -->
+                            <ellipse cx="60" cy="45" rx="10" ry="16" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2"/>
+                            <!-- 中趾 -->
+                            <ellipse cx="82" cy="50" rx="9" ry="15" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2"/>
+                            <!-- 无名趾 -->
+                            <ellipse cx="100" cy="60" rx="8" ry="14" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2"/>
+                            <!-- 小趾 -->
+                            <ellipse cx="110" cy="75" rx="7" ry="12" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2"/>
+                        </svg>
+                        <div class="finger-label toe" data-index="11">11</div>
+                        <div class="finger-label toe" data-index="12">12</div>
+                        <div class="finger-label toe" data-index="13">13</div>
+                        <div class="finger-label toe" data-index="14">14</div>
+                        <div class="finger-label toe" data-index="15">15</div>
+                    </div>
+                    <div class="foot foot-right" id="footRight">
+                        <svg class="foot-svg" viewBox="0 0 120 160">
+                            <!-- 脚掌 -->
+                            <ellipse cx="60" cy="100" rx="40" ry="50" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2"/>
+                            <!-- 大脚趾 -->
+                            <ellipse cx="85" cy="55" rx="12" ry="18" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2"/>
+                            <!-- 食趾 -->
+                            <ellipse cx="60" cy="45" rx="10" ry="16" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2"/>
+                            <!-- 中趾 -->
+                            <ellipse cx="38" cy="50" rx="9" ry="15" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2"/>
+                            <!-- 无名趾 -->
+                            <ellipse cx="20" cy="60" rx="8" ry="14" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2"/>
+                            <!-- 小趾 -->
+                            <ellipse cx="10" cy="75" rx="7" ry="12" fill="#f5d0c5" stroke="#e0b0a0" stroke-width="2"/>
+                        </svg>
+                        <div class="finger-label toe" data-index="16">16</div>
+                        <div class="finger-label toe" data-index="17">17</div>
+                        <div class="finger-label toe" data-index="18">18</div>
+                        <div class="finger-label toe" data-index="19">19</div>
+                        <div class="finger-label toe" data-index="20">20</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="final-result" id="finalResult"></div>
+
+        <div class="footer">
+            <span id="datetime"></span>
+            <span>作者：编程码农工坊</span>
+        </div>
+    </div>
+
+    <script>
+        // 设置当前时间
+        function updateTime() {
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const day = String(now.getDate()).padStart(2, '0');
+            const hour = String(now.getHours()).padStart(2, '0');
+            const minute = String(now.getMinutes()).padStart(2, '0');
+            const second = String(now.getSeconds()).padStart(2, '0');
+            document.getElementById('datetime').textContent = `${year}/${month}/${day} ${hour}:${minute}:${second}`;
+        }
+        updateTime();
+        setInterval(updateTime, 1000);
+
+        let isCalculating = false;
+
+        function parseExpression(expr) {
+            // 移除等号
+            expr = expr.replace(/=/g, '');
+            // 匹配数字和运算符
+            const match = expr.match(/(\d+)\s*([+\-×*/])\s*(\d+)/);
+            if (!match) return null;
+            return {
+                a: parseInt(match[1]),
+                b: parseInt(match[3]),
+                op: match[2]
+            };
+        }
+
+        function calculate(a, b, op) {
+            switch(op) {
+                case '+': return a + b;
+                case '-': return a - b;
+                case '×':
+                case '*': return a * b;
+                case '/': return b !== 0 ? a / b : NaN;
+                default: return NaN;
+            }
+        }
+
+        async function startCalculate() {
+            if (isCalculating) return;
+            
+            const expression = document.getElementById('expression').value;
+            const parsed = parseExpression(expression);
+            
+            if (!parsed) {
+                alert('请输入正确的算式，例如：5+8=');
+                return;
+            }
+
+            isCalculating = true;
+            const btn = document.getElementById('calcBtn');
+            btn.disabled = true;
+            btn.textContent = '计算中...';
+
+            // 重置显示
+            document.getElementById('progressContainer').style.display = 'block';
+            document.getElementById('visualSection').style.display = 'none';
+            document.getElementById('finalResult').style.display = 'none';
+            document.getElementById('resultText').textContent = '';
+            document.querySelectorAll('.finger-label').forEach(el => el.classList.remove('active'));
+
+            const result = calculate(parsed.a, parsed.b, parsed.op);
+            const totalCount = Math.abs(Math.round(result));
+            
+            // 进度条动画
+            const progressFill = document.getElementById('progressFill');
+            const progressText = document.getElementById('progressText');
+            
+            for (let i = 0; i <= 100; i += 5) {
+                progressFill.style.width = i + '%';
+                if (i < 30) {
+                    progressText.textContent = 'AI计算链路展开中...';
+                } else if (i < 60) {
+                    progressText.textContent = '正在加载手指计数模型...';
+                } else if (i < 90) {
+                    progressText.textContent = '准备展示推演过程...';
+                } else {
+                    progressText.textContent = '推演完成！';
+                }
+                await sleep(100);
+            }
+
+            await sleep(500);
+
+            // 显示手脚
+            document.getElementById('progressContainer').style.display = 'none';
+            document.getElementById('visualSection').style.display = 'flex';
+            document.getElementById('resultText').textContent = 'AI计算链路展开完成，准备展示推演过程...';
+
+            await sleep(1000);
+
+            // 开始数数动画
+            const visualSection = document.getElementById('visualSection');
+            visualSection.classList.add('counting');
+
+            for (let i = 1; i <= totalCount && i <= 20; i++) {
+                const label = document.querySelector(`.finger-label[data-index="${i}"]`);
+                if (label) {
+                    label.classList.add('active');
+                    document.getElementById('resultText').textContent = `正在数数... ${i}`;
+                    await sleep(600);
+                }
+            }
+
+            visualSection.classList.remove('counting');
+
+            // 显示最终结果
+            await sleep(500);
+            document.getElementById('finalResult').style.display = 'block';
+            document.getElementById('finalResult').textContent = `计算结果：${result}`;
+            document.getElementById('resultText').textContent = '计算完成！';
+
+            btn.disabled = false;
+            btn.textContent = '开始计算';
+            isCalculating = false;
+        }
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // 回车键触发计算
+        document.getElementById('expression').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                startCalculate();
+            }
+        });
+    </script>
+</body>
+</html>
