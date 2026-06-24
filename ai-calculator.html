@@ -609,6 +609,7 @@
             document.getElementById('resultText').textContent = '';
             document.querySelectorAll('.finger-label').forEach(el => {
                 el.classList.remove('active', 'color-a', 'color-b', 'color-c');
+                el.textContent = el.getAttribute('data-index'); // 恢复原始位置数字
             });
             document.getElementById('limbsRow').classList.remove('counting-a', 'counting-b', 'counting-c');
 
@@ -677,6 +678,7 @@
                 const label = document.querySelector(`.finger-label[data-index="${idx}"]`);
                 if (label) {
                     label.classList.add('active', 'color-b');
+                    label.textContent = i; // 标签显示从1开始数
                     document.getElementById('resultText').innerHTML = `<span style="color:#6c5ce7">数第二个数字... ${i}/${parsed.b}</span>`;
                     await sleep(500);
                 }
@@ -696,6 +698,7 @@
                     // 移除旧颜色，替换为金黄色，保持active状态（不隐藏）
                     label.classList.remove('color-a', 'color-b');
                     label.classList.add('color-c');
+                    label.textContent = i; // 标签显示从1开始数
                     document.getElementById('resultText').innerHTML = `<span style="color:#ffd93d">数结果... ${i}/${result}</span>`;
                     await sleep(500);
                 }
