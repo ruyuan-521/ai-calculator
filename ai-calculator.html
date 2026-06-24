@@ -667,13 +667,13 @@
             document.getElementById('limbsRow').classList.remove('counting-a');
             await sleep(800);
 
-            // === 阶段2：用蓝紫色数第二个数字（从第一个数字后面接着数，不重叠） ===
+            // === 阶段2：用蓝紫色数第二个数字（从1开始，不重叠） ===
             document.getElementById('sectionTitle').textContent = `正在数第二个数字 ${parsed.b}...`;
             document.getElementById('resultText').innerHTML = `<span style="color:#6c5ce7">正在数第二个数字 ${parsed.b}...</span>`;
             document.getElementById('limbsRow').classList.add('counting-b');
 
             for (let i = 1; i <= numB; i++) {
-                const idx = numA + i; // 从第一个数字结束的位置接着数
+                const idx = numA + i; // 从第一个数字结束的位置接着数，不重叠
                 const label = document.querySelector(`.finger-label[data-index="${idx}"]`);
                 if (label) {
                     label.classList.add('active', 'color-b');
@@ -685,13 +685,7 @@
             document.getElementById('limbsRow').classList.remove('counting-b');
             await sleep(800);
 
-            // === 阶段3：清除所有，用金黄色数结果 ===
-            document.querySelectorAll('.finger-label').forEach(el => {
-                el.classList.remove('active', 'color-a', 'color-b');
-            });
-
-            await sleep(500);
-
+            // === 阶段3：用金黄色数结果（覆盖前面的颜色，不隐藏） ===
             document.getElementById('sectionTitle').textContent = `正在数结果 ${result}...`;
             document.getElementById('resultText').innerHTML = `<span style="color:#ffd93d">正在数结果 ${result}...</span>`;
             document.getElementById('limbsRow').classList.add('counting-c');
@@ -699,7 +693,9 @@
             for (let i = 1; i <= totalResult; i++) {
                 const label = document.querySelector(`.finger-label[data-index="${i}"]`);
                 if (label) {
-                    label.classList.add('active', 'color-c');
+                    // 移除旧颜色，替换为金黄色，保持active状态（不隐藏）
+                    label.classList.remove('color-a', 'color-b');
+                    label.classList.add('color-c');
                     document.getElementById('resultText').innerHTML = `<span style="color:#ffd93d">数结果... ${i}/${result}</span>`;
                     await sleep(500);
                 }
